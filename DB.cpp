@@ -16,7 +16,6 @@ void DB::_prepareModel(QObject * parent)
     model = new TblModel(parent, _db);
     model->setTable(_db.driver()->escapeIdentifier("tbl_clients", QSqlDriver::TableName));
     model->setEditStrategy(QSqlTableModel::OnManualSubmit);
-//    model->removeColumn(0);
     model->_setIndexes();
     model->setHeaderData(1, Qt::Horizontal, "Дата\nдобавления");
     model->setHeaderData(2, Qt::Horizontal, "Район");
@@ -38,9 +37,7 @@ void DB::_connectDB()
 {
     _db = QSqlDatabase::addDatabase("QSQLITE");
     _db.setDatabaseName("./.db");
-    if (!_db.open() || !_db.isOpen()) {
-        qDebug() << _db.lastError().text();
-    }
+
     QSqlQuery qcreate(_db);
     if(!qcreate.exec(QString(QString("CREATE TABLE IF NOT EXISTS 'tbl_clients' (")+
                     QString("             'id' INTEGER PRIMARY KEY AUTOINCREMENT,")+
@@ -57,7 +54,7 @@ void DB::_connectDB()
                     QString("             'validity_date' INTEGER,")+
                     QString("             'medicine' TEXT")+
                     QString("        )")))) {
-        qDebug() << "verybad...";
+        //TODO: throw an error
     }
     if(!qcreate.exec(QString(QString("CREATE TABLE IF NOT EXISTS 'tbl_diabetes_types' (")+
                     QString("             'id' INTEGER PRIMARY KEY AUTOINCREMENT,")+
@@ -65,21 +62,21 @@ void DB::_connectDB()
                     QString("             'deleted' INTEGER DEFAULT 0")+
                     QString(")"))))
                      {
-        qDebug() << "verybad...";
+        //TODO: throw an error
     }
     if(!qcreate.exec(QString(QString("CREATE TABLE IF NOT EXISTS 'tbl_districts' (")+
                     QString("             'id' INTEGER PRIMARY KEY AUTOINCREMENT,")+
                     QString("             'name' TEXT,")+
                     QString("             'deleted' INTEGER DEFAULT 0")+
                     QString(")")))) {
-        qDebug() << "verybad...";
+        //TODO: throw an error
     }
     if(!qcreate.exec(QString(QString("CREATE TABLE IF NOT EXISTS 'tbl_disability_types' (")+
                     QString("             'id' INTEGER PRIMARY KEY AUTOINCREMENT,")+
                     QString("             'type' TEXT,")+
                     QString("             'deleted' INTEGER DEFAULT 0")+
                     QString(")")))) {
-        qDebug() << "verybad...";
+        //TODO: throw an error
     }
 }
 

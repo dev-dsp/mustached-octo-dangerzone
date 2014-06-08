@@ -19,25 +19,19 @@ void TblModel::_setIndexes()
 }
 
 bool TblModel::setData(QModelIndex const &index, QVariant const &value, int role){
-    qDebug() << "setData";
     if (!index.isValid() || role != Qt::EditRole){
         return false;
     }
 
-    qDebug() << index << value << role;
     bool validEdit = false;
     if (index.column() == fieldIndex("add_date")){
         validEdit = QSqlRelationalTableModel::setData(index, value.toDateTime().toTime_t(), role);
 
-        qDebug() << validEdit;
         if (validEdit){
-            qDebug() << this->data(index);
-            //emit dataChanged(index, index); // signal to the view that the item needs to be redrawn
             return true;
         }
     }
     validEdit = QSqlRelationalTableModel::setData(index, value, role);
-    qDebug() << validEdit;
     return validEdit;
 }
 
@@ -64,9 +58,6 @@ QSqlError TblModel::insert()
         if(this->_needUpdate)
             this->_constructQuery();
         QSqlQuery q(this->database());
-        if(this->_dbg){
-            qDebug() << "TblModel::insert() " << this->_query;
-        }
         if(q.exec(this->_query)) {
             return QSqlError();
         }
@@ -92,11 +83,6 @@ QString TblModel::fieldIndex(const int i) const
     }
 }
 
-void TblModel::setDebug(bool set)
-{
-    this->_dbg = set;
-}
-
 void TblModel::addColumnData(QString columnName, QVariant data)
 {
     this->_queryData.insert(columnName, data);
@@ -117,9 +103,6 @@ void TblModel::createFilter()
     }
     QString filter = "";
     foreach (QString column, this->_filter.keys()) {
-        if(this->_filter[column].empty())
-            qDebug() << "er";
-
         if(this->_filter[column].type() == TblModel::Filter::Ranged) {
             if(this->_filter[column].to() != NULL) {
                 filter += column+QString(" <= ")+QString::number(this->_filter[column].to())+QString(" AND ");
@@ -141,10 +124,9 @@ void TblModel::createFilter()
         }
     }
     filter.remove(filter.length()-5, 5);
-    qDebug() << filter;
+
     this->setFilter(filter);
     this->select();
-    qDebug() << this->query().lastQuery();
 }
 
 void TblModel::addRelationalData(int relationID, QString data)
@@ -153,15 +135,9 @@ void TblModel::addRelationalData(int relationID, QString data)
     QString relCol = this->relation(relationID).displayColumn();
     QSqlQuery q(this->database());
     if(!q.exec(QString("SELECT `id` FROM ")+tbl+QString(" WHERE `")+relCol+QString("` = '")+data+QString("';"))) {
-        //throw "ERROR!!!!!";
+        //TODO: throw an error
     }
     q.next();
-    for(int i = 0; i<this->record().count(); i++){
-        qDebug() << this->record().fieldName(i);
-    }
-    qDebug() << this->query().lastQuery();
-    if(this->_dbg)
-        qDebug() << this->fieldIndex(relationID) << "("<<relationID<<", in "<<tbl<<") -> [ "<<data<<" | "<<q.value(0).toInt()<<" ];";
     this->addColumnData(this->fieldIndex(relationID), QVariant(q.value(0).toInt()));
 }
 
@@ -178,7 +154,7 @@ int TblModel::searchRelation(int relationID, QString value)
     QString col = this->relation(relationID).displayColumn();
     QSqlQuery q(this->database());
     if(!q.exec(QString("SELECT `id`")+QString(" FROM ")+tbl+QString(" WHERE ")+col+QString("='")+value+QString("';"))) {
-        throw "ERROR!!!!!!";
+        //TODO: throw an error
     }
     q.next();
     return q.value(0).toInt();
@@ -187,7 +163,7 @@ int TblModel::searchRelation(int relationID, QString value)
 void TblModel::_constructQuery()
 {
     QString names="", values="";
-    //qDebug()<< this->_queryData;
+
     foreach (QString key, this->_queryData.keys()) {
         names+=QString("`")+key+QString("`,");
         if(QString(this->_queryData[key].typeName()) == QString("int")) {

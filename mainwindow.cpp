@@ -5,20 +5,25 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     QTextCodec::setCodecForLocale(codec);
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForTr(codec);
+
+    db = new DB(this);
     ui->setupUi(this);
     this->setWindowTitle("Система учёта клиентов");
+
     ui->dateAdd->setDate(QDate::currentDate());
     ui->birthDate->setDate(QDate::currentDate());
     ui->validity->setDate(QDate::currentDate());
     ui->dateAdd->setDisplayFormat(QString("dd.MM.yyyy"));
-    db = new DB(this);
+
+
     ui->clientTable->setModel(db->getModel());
     ui->clientTable->resizeColumnsToContents();
-    //qDebug() << db->getModel()->relationModel(db->getModel()->fieldIndex("district"))->record().fieldName(1);
+
     db->getModel()->relationModel(db->getModel()->fieldIndex("district"))->setFilter("`deleted` = 0");
     db->getModel()->relationModel(db->getModel()->fieldIndex("diabetes_type"))->setFilter("`deleted` = 0");
     db->getModel()->relationModel(db->getModel()->fieldIndex("disability_type"))->setFilter("`deleted` = 0");
@@ -40,10 +45,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->diabetesTypeS->setModel(db->getModel()->relationModel(db->getModel()->fieldIndex("diabetes_type")));
     ui->diabetesTypeS->setModelColumn(1);
-    //db->getModel()->select();
+
+
     ui->clientTable->hideColumn(0);
     ui->clientTable->setItemDelegateForColumn(2, new QSqlRelationalDelegate(ui->clientTable));
-//    ui->clientTable->setItemDelegateForColumn(0, new DateEditDelegate(ui->clientTable));
+    ui->clientTable->setItemDelegateForColumn(8, new QSqlRelationalDelegate(ui->clientTable));
+    ui->clientTable->setItemDelegateForColumn(9, new QSqlRelationalDelegate(ui->clientTable));
     ui->clientTable->show();
 }
 
@@ -69,18 +76,14 @@ void MainWindow::on_addButton_clicked()
     model->addColumnData("vtek_id", QVariant(ui->vtekNumber->text().toInt()));
     model->addColumnData("validity_date", QVariant(ui->validity->dateTime()));
     model->addColumnData("medicine",QVariant(ui->medicine->text()));
+
     QSqlError e = model->insert();
-    //QComboBox * a;
-    //a->itemDelegate()->setEditorData();
-    qDebug() << "adding";
     if(e.number() != -1) {
         QMessageBox::warning(this, "Ошибка", QString("При добавлении произошла ошибка!\nТекст ошибки: \"")+e.text()+QString("\""));
     }
     else {
         QMessageBox::information(this, "Добавлено", "Добавление прошло успешно!");
     }
-    qDebug() << "added";
-    qDebug() << e.text();
 }
 
 void MainWindow::on_searchButton_clicked()
@@ -157,7 +160,6 @@ void MainWindow::on_showAll_clicked()
     }
     qDebug() << db->getModel()->query().executedQuery();
     ui->exportButton->setDisabled(false);
-    //this->db->getModel()->setFilter(filter);
 }
 
 void MainWindow::on_exportButton_clicked()
